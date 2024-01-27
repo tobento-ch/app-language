@@ -83,6 +83,7 @@ class RouteLocalizerTest extends TestCase
         $this->assertSame(['en-us', 'de-ch'], $route->getParameter('locales'));
         $this->assertSame('en-us', $route->getParameter('locale_omit'));
         $this->assertSame([], $route->getParameter('locale_fallbacks'));
+        $this->assertSame('en-us', $route->getParameter('locale'));
     }
     
     public function testLocalizeRouteMethodUsesLanguageSlug()
