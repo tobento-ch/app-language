@@ -91,10 +91,12 @@ class RouteLocalizer implements RouteLocalizerInterface
     ): RouteInterface|RouteGroupInterface|RouteResourceInterface {
         
         $defaultLanguage = $languages->default();
+        $currentLanguage = $languages->current();
 
         $route->locales($languages->column('slug'))
               ->localeOmit($defaultLanguage->slug())
-              ->localeFallbacks($this->languages->fallbacks('slug'));
+              ->localeFallbacks($this->languages->fallbacks('slug'))
+              ->locale($currentLanguage->slug());
         
         return $route;
     }
