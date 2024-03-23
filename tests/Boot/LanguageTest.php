@@ -27,6 +27,7 @@ use Tobento\Service\Language\LanguagesInterface;
 use Tobento\Service\Language\CurrentLanguageResolverInterface;
 use Tobento\Service\Translation\TranslatorInterface;
 use Tobento\Service\Translation\Resource;
+use Tobento\Service\Dater\DateFormatter;
 use Tobento\Service\Filesystem\Dir;
 use Tobento\App\Http\Boot\Routing;
 use Tobento\App\Http\Boot\Http;
@@ -407,5 +408,32 @@ class LanguageTest extends TestCase
             '{"route_locale":"de","current_locale":"de"}',
             (string)$app->get(Http::class)->getResponse()->getBody()
         );
+    }
+    
+    public function testDateFormatterUsesCurrentLanguage()
+    {
+        $app = $this->createApp();
+        
+        // Replace response emitter for testing:
+        $app->on(ResponseEmitterInterface::class, ResponseEmitter::class);
+        
+        $app->on(ServerRequestInterface::class, function() {
+            return (new Psr17Factory())->createServerRequest(
+                method: 'GET',
+                uri: 'de/foo',
+                serverParams: [],
+            );
+        });
+
+        $app->on(LanguageRepositoryInterface::class, function($repo) {
+            $repo->create(['locale' => 'de']);
+        });
+        
+        $app->boot(Language::class);
+        $app->booting();
+        
+        $df = $app->get(DateFormatter::class);
+        
+        $this->assertSame('Freitag, 15. März 2024', $df->date('2024-03-15'));
     }
 }
