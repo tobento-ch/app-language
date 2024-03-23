@@ -26,6 +26,7 @@
         "tobento/app-http": "^1.0.6",
         "tobento/app-database": "^1.0",
         "tobento/service-support": "^1.0",
+        "tobento/service-dater": "^1.0.2",
         "tobento/service-routing": "^1.0.8",
         "tobento/service-requester": "^1.0.2",
         "tobento/service-language": "^1.0.4",
