@@ -83,7 +83,7 @@ return [
                     1 => [
                         'locale' => 'en',
                         //'region' => null,
-                        //'name' => 'En',
+                        'name' => 'English',
                         'id' => 1,
                         //'key' => 'en',                        
                         //'slug' => 'en',
