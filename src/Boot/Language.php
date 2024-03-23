@@ -24,6 +24,7 @@ use Tobento\Service\Language\LanguagesInterface;
 use Tobento\Service\Language\AreaLanguagesInterface;
 use Tobento\Service\Language\CurrentLanguageResolverInterface;
 use Tobento\Service\Language\CurrentLanguageResolverException;
+use Tobento\Service\Dater\DateFormatter;
 
 /**
  * Language
@@ -35,6 +36,7 @@ class Language extends Boot
             'installs and loads language config file',
             'implements language interfaces based on language config',
             'determines current language',
+            'sets current language on date formatter',
         ],
     ];
 
@@ -84,6 +86,16 @@ class Language extends Boot
         } catch (CurrentLanguageResolverException $e) {
             // just ignore as the default language will be the current.
         }
+        
+        // set the current locale on the date formatter:
+        $currentLocale = $this->languages()->current()->locale();
+            
+        $this->app->on(
+            DateFormatter::class,
+            static function(DateFormatter $df) use ($currentLocale): DateFormatter {
+                return $df->withLocale($currentLocale);
+            }
+        );
     }
     
     /**
