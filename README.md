@@ -46,6 +46,7 @@ The language boot does the following:
 * installs and loads language config file
 * language interfaces implementation based on config
 * determines current language
+* sets current language on the [date formatter](https://github.com/tobento-ch/app#dater-boot)
 
 ```php
 use Tobento\App\AppFactory;
