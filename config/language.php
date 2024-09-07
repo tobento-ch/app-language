@@ -49,7 +49,7 @@ return [
         
         Language\LanguageFactoryInterface::class => Language\LanguageFactory::class,
         
-        Language\LanguagesFactoryInterface::class => Language\LanguagesFactory::class,
+        Language\LanguagesFactoryInterface::class => App\LanguagesFactory::class,
         
         Language\AreaLanguagesInterface::class => static function(ContainerInterface $c) {
 
@@ -82,10 +82,10 @@ return [
                 'languages' => [
                     1 => [
                         'locale' => 'en',
+                        'key' => 'en', // used for translations and storing resources!
                         //'region' => null,
                         'name' => 'English',
-                        'id' => 1,
-                        //'key' => 'en',                        
+                        'id' => 1,                        
                         //'slug' => 'en',
                         //'directory' => 'en',
                         //'direction' => 'ltr',
