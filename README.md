@@ -297,12 +297,22 @@ $storage = new InMemoryStorage([
         1 => [
             'id' => 1,
             'locale' => 'de-DE',
+            
+            // The key is used for translations and storing resources!
+            'key' => 'de',
+            
             'domain' => 'example.de',
             'default' => true,
         ],
         2 => [
             'id' => 2,
             'locale' => 'de-CH',
+            
+            // The key is used for translations and storing resources!
+            'key' => 'de',
+            // or if specific translations and storing resources!
+            //'key' => 'de-CH',
+            
             'slug' => 'de',
             'domain' => 'example.ch',
             'fallback' => 'de-DE',
