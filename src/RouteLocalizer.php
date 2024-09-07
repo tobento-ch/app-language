@@ -45,7 +45,9 @@ class RouteLocalizer implements RouteLocalizerInterface
         protected LanguagesInterface $languages,
         protected null|TranslatorInterface $translator = null,
         protected string $translationSrc = 'routes',
-    ) {}
+    ) {
+        $this->languages = $languages->active();
+    }
     
     /**
      * Localize the specified route.
@@ -169,7 +171,7 @@ class RouteLocalizer implements RouteLocalizerInterface
                     $translation = $this->translator->trans(
                         message: $uriSegment,
                         parameters: ['src' => $this->translationSrc],
-                        locale: $language->locale(),
+                        locale: $language->key(),
                     );
                     
                     $translation = Str::slug($translation);
