@@ -69,8 +69,8 @@ class RouteLocalizerTest extends TestCase
         $localizer = new RouteLocalizer(
             languagesFactory: new LanguagesFactory(),
             languages: new Languages(
-                $factory->createLanguage('en-US', default: true),
-                $factory->createLanguage('de-CH'),
+                $factory->createLanguage(locale: 'en-US', slug: 'en-us', default: true),
+                $factory->createLanguage(locale: 'en-CH', slug: 'de-ch'),
             ),
         );
         
@@ -84,6 +84,27 @@ class RouteLocalizerTest extends TestCase
         $this->assertSame('en-us', $route->getParameter('locale_omit'));
         $this->assertSame([], $route->getParameter('locale_fallbacks'));
         $this->assertSame('en-us', $route->getParameter('locale'));
+    }
+    
+    public function testLocalizeRouteMethodUsesActiveLanguagesOnly()
+    {
+        $factory = new LanguageFactory();
+        
+        $localizer = new RouteLocalizer(
+            languagesFactory: new LanguagesFactory(),
+            languages: new Languages(
+                $factory->createLanguage('en-US', slug: 'en', default: true),
+                $factory->createLanguage('de-CH', slug: 'de', active: false),
+            ),
+        );
+        
+        $router = $this->createRouter();
+
+        $route = $router->get('{?locale}/foo', [Ctr::class, 'method'])->name('foo');
+        
+        $localizer->localizeRoute($route);
+        
+        $this->assertSame(['en'], $route->getParameter('locales'));
     }
     
     public function testLocalizeRouteMethodUsesLanguageSlug()
@@ -217,6 +238,58 @@ class RouteLocalizerTest extends TestCase
             languages: new Languages(
                 $factory->createLanguage('en', default: true),
                 $factory->createLanguage('de', fallback: 'en'),
+            ),
+            translator: new Translation\Translator(
+                new Translation\Resources(
+                    new Translation\Resource(
+                        name: 'routes',
+                        locale: 'en',
+                        translations: ['checkout' => 'checkout', 'payment' => 'payment'],
+                    ),
+                    new Translation\Resource(
+                        name: 'routes',
+                        locale: 'de',
+                        translations: ['checkout' => 'kasse', 'payment' => 'zahlung'],
+                    ),
+                ),
+                new Translation\Modifiers(
+                    new Translation\Modifier\Pluralization(),
+                    new Translation\Modifier\ParameterReplacer(),
+                ),
+                new Translation\MissingTranslationHandler(),
+                'en',
+            ),
+        );
+        
+        $router = $this->createRouter();
+
+        $route = $router->get('{?locale}/{checkout}/{payment}', [Ctr::class, 'method'])->name('foo');
+        
+        $localizer->localizeRoute($route, 'checkout', 'payment');
+        
+        $this->assertSame(
+            [
+                'en' => 'https://example.com/checkout/payment',
+                'de' => 'https://example.com/de/kasse/zahlung',
+            ],
+            $router->url('foo')->translated()
+        );
+        
+        $this->assertSame(
+            [],
+            $router->url('foo')->domained()
+        );
+    }
+    
+    public function testLocalizeRouteMethodUsesLanguageKeyForTranslation()
+    {
+        $factory = new LanguageFactory();
+        
+        $localizer = new RouteLocalizer(
+            languagesFactory: new LanguagesFactory(),
+            languages: new Languages(
+                $factory->createLanguage(locale: 'en', default: true),
+                $factory->createLanguage(locale: 'de-CH', key: 'de'),
             ),
             translator: new Translation\Translator(
                 new Translation\Resources(
