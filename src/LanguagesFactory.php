@@ -49,7 +49,7 @@ class LanguagesFactory implements LanguagesFactoryInterface
         // otherwise if there are more default languages per domain,
         // it may take the wrong default.
         return $languages->sort(
-            fn(LanguageInterface $a, LanguageInterface $b) => $b->domain() === $host
+            fn(LanguageInterface $a, LanguageInterface $b): int => ($b->domain() === $host) ? 1 : -1
         );
     }
 }
