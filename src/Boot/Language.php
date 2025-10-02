@@ -53,13 +53,11 @@ class Language extends Boot
      *
      * @param Config $config
      * @param Migration $migration
-     * @param Middleware $middleware
      * @return void
      */
     public function boot(
         Config $config,
         Migration $migration,
-        Middleware $middleware,
     ): void {
         // install language config:
         $migration->install(\Tobento\App\Language\Migration\Language::class);
