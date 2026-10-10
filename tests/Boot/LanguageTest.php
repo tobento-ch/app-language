@@ -16,6 +16,7 @@ namespace Tobento\App\Language\Test\Boot;
 use PHPUnit\Framework\TestCase;
 use Tobento\App\AppInterface;
 use Tobento\App\AppFactory;
+use Tobento\App\Language\AvailableAreasInterface;
 use Tobento\App\Language\Boot\Language;
 use Tobento\App\Language\LanguageFactoryInterface;
 use Tobento\App\Language\LanguageRepositoryInterface;
@@ -78,6 +79,7 @@ class LanguageTest extends TestCase
         $this->assertInstanceof(AreaLanguagesInterface::class, $app->get(AreaLanguagesInterface::class));
         $this->assertInstanceof(LanguagesInterface::class, $app->get(LanguagesInterface::class));
         $this->assertInstanceof(CurrentLanguageResolverInterface::class, $app->get(CurrentLanguageResolverInterface::class));
+        $this->assertInstanceof(AvailableAreasInterface::class, $app->get(AvailableAreasInterface::class));
     }
     
     public function testCurrentLanguage()
@@ -435,5 +437,22 @@ class LanguageTest extends TestCase
         $df = $app->get(DateFormatter::class);
         
         $this->assertSame('Freitag, 15. März 2024', $df->date('2024-03-15'));
+    }
+    
+    public function testAvailableAreasHasDefaultArea()
+    {
+        $app = $this->createApp();
+        $app->boot(Language::class);
+        $app->booting();
+
+        $areas = $app->get(AvailableAreasInterface::class);
+
+        $this->assertTrue($areas->has('default'));
+        $this->assertSame(1, $areas->count());
+        
+        $area = $areas->get('default');
+
+        $this->assertSame('default', $area->name());
+        $this->assertSame('root', $area->appId());
     }
 }
