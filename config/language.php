@@ -119,5 +119,16 @@ return [
         },
         
         App\RouteLocalizerInterface::class => App\RouteLocalizer::class,
+        
+        App\AvailableAreasInterface::class => static function(): App\AvailableAreasInterface {
+            return new App\AvailableAreas(
+                new App\Area(
+                    name: 'default',
+                    title: 'Default',
+                    description: 'Languages used for the main application such as routing and resources.',
+                    appId: 'root',
+                ),
+            );
+        },
     ],
 ];
