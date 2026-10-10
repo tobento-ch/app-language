@@ -10,12 +10,13 @@ Language support for the app.
     - [App](#app)
     - [Language Boot](#language-boot)
         - [Language Config](#language-config)
-        - [App Languages](#app-languages)
-        - [Current And Default App Language](#current-and-default-app-language)
-        - [Resolving Current Language](#resolving-current-language)
-        - [Localizing Routes](#localizing-routes)
-        - [Localizing Routes With Domains](#localizing-routes-with-Domains)
-        - [Area Languages](#area-languages)
+    - [App Languages](#app-languages)
+    - [Current And Default App Language](#current-and-default-app-language)
+    - [Resolving Current Language](#resolving-current-language)
+    - [Localizing Routes](#localizing-routes)
+    - [Localizing Routes With Domains](#localizing-routes-with-Domains)
+    - [Area Languages](#area-languages)
+    - [Available Areas](#available-areas)
 - [Credits](#credits)
 ___
 
@@ -73,7 +74,7 @@ $app->run();
 
 The configuration for the language is located in the ```app/config/language.php``` file at the default App Skeleton config location.
 
-### App Languages
+## App Languages
 
 ```php
 use Tobento\App\AppFactory;
@@ -102,7 +103,7 @@ $app->run();
 
 You may check out the [**Language Service**](https://github.com/tobento-ch/service-language) to learn more about it.
 
-### Current And Default App Language
+## Current And Default App Language
 
 ```php
 use Tobento\App\AppFactory;
@@ -142,11 +143,11 @@ $app->run();
 
 You may check out the [**Language Service**](https://github.com/tobento-ch/service-language) to learn more about it.
 
-### Resolving Current Language
+## Resolving Current Language
 
 By default, the current language is resolved by the ```Tobento\App\Language\CurrentLanguageRouterResolver::class```. You may change the implementation in the language config.
 
-### Localizing Routes
+## Localizing Routes
 
 You may localize your routes by the following way:
 
@@ -286,7 +287,7 @@ By default, translations are loaded from the ```routes``` [named resources](http
 
 You may change the localization strategy by changing the ```RouteLocalizerInterface::class``` implemenation in the language config file.
 
-### Localizing Routes With Domains
+## Localizing Routes With Domains
 
 You will need to specify the languages with its domain in the ```app/config/language.php``` file:
 
@@ -386,7 +387,7 @@ Array
 $app->run();
 ```
 
-### Area Languages
+## Area Languages
 
 ```php
 use Tobento\App\AppFactory;
@@ -415,6 +416,189 @@ $app->run();
 ```
 
 You may check out the [**Area Languages**](https://github.com/tobento-ch/service-language#area-languages) to learn more about it.
+
+## Available Areas
+
+The available areas registry holds all defined language areas. Areas describe where languages are used, such as routing, resources, backend tools or an API. They may be registered by different apps (frontend, backend, cms, api, modules), so each one can add its own areas.
+
+```php
+use Tobento\App\AppFactory;
+use Tobento\App\Language\AvailableAreasInterface;
+use Tobento\App\Language\AreaInterface;
+
+$app = new AppFactory()->createApp();
+
+// Add directories:
+$app->dirs()
+    ->dir(realpath(__DIR__.'/../'), 'root')
+    ->dir(realpath(__DIR__.'/../app/'), 'app')
+    ->dir($app->dir('app').'config', 'config', group: 'config')
+    ->dir($app->dir('root').'public', 'public')
+    ->dir($app->dir('root').'vendor', 'vendor');
+
+// Adding boots:
+$app->boot(\Tobento\App\Language\Boot\Language::class);
+$app->booting();
+
+// Gets the available areas:
+$areas = $app->get(AvailableAreasInterface::class);
+
+var_dump($areas->has('default'));
+// bool(true)
+
+$area = $areas->get('default');
+// returns null if the area does not exist
+
+var_dump($area instanceof AreaInterface);
+// bool(true)
+
+// Run the app:
+$app->run();
+```
+
+### Defining Areas In The Config
+
+The areas are defined in the ```app/config/language.php``` file using the ```AvailableAreasInterface::class``` entry. By default, only the ```default``` area is defined:
+
+```php
+use Tobento\App\Language as App;
+
+return [
+    // ...
+    
+    'interfaces' => [
+        // ...
+        
+        App\AvailableAreasInterface::class => static function(): App\AvailableAreasInterface {
+            return new App\AvailableAreas(
+                new App\Area(
+                    name: 'default',
+                    title: 'Default',
+                    description: 'Languages used for the main application such as routing and resources.',
+                    appId: 'root',
+                ),
+            );
+        },
+    ],
+];
+```
+
+You may add further areas by passing more ```Area``` objects:
+
+```php
+App\AvailableAreasInterface::class => static function(): App\AvailableAreasInterface {
+    return new App\AvailableAreas(
+        new App\Area(
+            name: 'default',
+            title: 'Default',
+            description: 'Languages used for the main application such as routing and resources.',
+            appId: 'root',
+        ),
+        new App\Area(
+            name: 'backend',
+            title: 'Backend',
+            description: 'Languages used for the backend.',
+            appId: 'backend',
+        ),
+    );
+},
+```
+
+**Note:** The available areas are independent of the [Area Languages](#area-languages). The registry only describes which areas exist, for example to list them in a UI. Languages are assigned to an area through their own `area` value in the language repository.
+
+### Creating Areas
+
+Use the `Area` class to define an area:
+
+```php
+use Tobento\App\Language\Area;
+
+$area = new Area(
+    // The unique area name:
+    name: 'resources',
+    
+    // Human-readable title for UI display:
+    title: 'Resources',
+    
+    // Descriptive text for UI info texts or documentation:
+    description: 'Used for translating resources.',
+    
+    // Identifier of the app which registers the area:
+    appId: 'backend',
+);
+
+$area->name(); // 'resources'
+$area->title(); // 'Resources'
+$area->description(); // 'Used for translating resources.'
+$area->appId(); // 'backend'
+```
+
+You may also create your own area by implementing the `Tobento\App\Language\AreaInterface`.
+
+### Registering Areas
+
+Other apps or bundles may add their areas after the config is loaded, using the `add` method. If an area with the same name already exists, it is replaced.
+
+```php
+use Tobento\App\Language\Area;
+use Tobento\App\Language\AvailableAreasInterface;
+
+$app->on(AvailableAreasInterface::class, function(AvailableAreasInterface $areas) {
+    $areas->add(new Area(
+        name: 'api',
+        title: 'API',
+        description: 'Used for API responses.',
+        appId: 'api',
+    ));
+});
+```
+
+**Reading areas**
+
+```php
+// All areas keyed by name:
+$all = $areas->all();
+
+// All names:
+$names = $areas->names();
+// ['default', 'api']
+
+// All titles keyed by name:
+$titles = $areas->titles();
+// ['default' => 'Default', 'api' => 'API']
+
+// All descriptions keyed by name:
+$descriptions = $areas->descriptions();
+
+// Number of areas:
+var_dump($areas->count());
+// int(2)
+
+// Iterating:
+foreach ($areas as $name => $area) {
+    // $name is the area name, $area an AreaInterface
+}
+```
+
+### Filtering Areas
+
+The `app` and `filter` methods return a new instance and leave the original unchanged.
+
+**Filter by app**
+
+```php
+$rootAreas = $areas->app('root');
+```
+
+**Custom filter**
+
+```php
+use Tobento\App\Language\AreaInterface;
+
+$filtered = $areas->filter(
+    fn (AreaInterface $area): bool => str_starts_with($area->name(), 'back')
+);
+```
 
 # Credits
 
